@@ -9,6 +9,7 @@ function App() {
   const [allTodos, setTodo] = useState([]);
   const [newTitle, setNewTitle] = useState("");
   const[newDescription, setNewDeacription] = useState("");
+  const [completedTodos, setCompletedTodo] = useState([])
 
   const AddTodoItem = () => {
     let newTodoItem = {
@@ -24,11 +25,18 @@ function App() {
 
   useEffect(()=>{
     let todo_arr = JSON.parse(localStorage.getItem('todo_arr'));
+    let completed_todo_arr = JSON.parse(localStorage.getItem("completed_todo_arr"))
+    
     if(todo_arr){
       setTodo(todo_arr);
     }
-  }, [])
 
+    if(completed_todo_arr){
+      setCompletedTodo(completed_todo_arr)
+    }
+
+
+  }, [])
 
   const DeleteToDoItem = (index) => {
     let reduced_arr = [...allTodos];
@@ -36,6 +44,37 @@ function App() {
     localStorage.setItem("todo_arr", JSON.stringify(reduced_arr));
     setTodo(reduced_arr);
   }
+
+
+  let DeleteCompletedToDoItem = (index) => {
+    let reduced_arr = [...completedTodos];
+    reduced_arr.splice(index);
+    localStorage.setItem("completed_todo_arr", JSON.stringify(reduced_arr));
+    setCompletedTodo(reduced_arr);
+  }
+
+const handleCompletedTodos= (index) => {
+  let now = new Date();
+  let dd = now.getDate();
+  let mm = now.getMonth() + 1;
+  let yyyy = now.getFullYear();
+  let h = now.getHours();
+  let m = now.getMinutes();
+  let s = now.getSeconds();
+  let completedOn = dd + '-' + mm + '-' + yyyy + ' at ' + h + ':' + m + ':' + s;
+
+  let filterItems = {
+    ...allTodos [index],
+    completedOn: completedOn
+  }
+
+  let updatedCompletdArray = [...completedTodos];
+  updatedCompletdArray.push(filterItems);
+  setCompletedTodo(updatedCompletdArray);
+  DeleteToDoItem(index);
+  localStorage.setItem("completed_todo_arr", JSON.stringify(updatedCompletdArray))
+}
+  
 
   return (
     <div className="App">
@@ -65,7 +104,7 @@ function App() {
         </div>
 
         <div className="todo-list">
-          {allTodos.map((item, index)=>{
+          { isCompleted === false && allTodos.map((item, index)=>{
             return(
               <div className="todo-list-item" key={index}>
                 <div className="info">
@@ -74,7 +113,24 @@ function App() {
                 </div>
                 <div className="actions">
                 <MdOutlineDelete className='icon delete' onClick={()=> DeleteToDoItem(index)} />
-                <FaCheck className='icon check'/>
+                <FaCheck className='icon check' onClick={()=> handleCompletedTodos(index)}/>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="todo-list">
+          { isCompleted === true && completedTodos.map((item, index)=>{
+            return(
+              <div className="todo-list-item" key={index}>
+                <div className="info">
+                  <h2>{item.title}</h2>
+                  <p>{item.description}</p>
+                  <p>Completed on: <small>{item.completedOn}</small></p>
+                </div>
+                <div className="actions">
+                <MdOutlineDelete className='icon delete' onClick={()=> DeleteCompletedToDoItem(index)} />
                 </div>
               </div>
             )
